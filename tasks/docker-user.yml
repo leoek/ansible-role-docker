@@ -1,0 +1,9 @@
+- name: create user docker
+  become: true
+  user:
+    name: docker
+    createhome: yes
+    state: present
+    shell: /bin/bash
+    append: yes
+    groups: docker

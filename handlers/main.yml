@@ -1,0 +1,39 @@
+---
+# handlers file for role
+
+- name: remove docker-py
+  become: true
+  pip:
+    name: docker-py
+    state: absent
+  listen: removed-docker-py
+
+- name: remove docker
+  become: true
+  pip:
+    name: docker
+    state: absent
+  listen: removed-docker-py
+
+- name: install docker with pip
+  become: true
+  pip:
+    name: docker
+  register: docker_pip_result_handler
+  ignore_errors: True
+  listen: removed-docker-py
+
+#this resolves https://stackoverflow.com/questions/27341064/how-do-i-fix-importerror-cannot-import-name-incompleteready
+#(try to install with pip after that again)
+- name: clear python 2.7 requests
+  become: true
+  command: rm -rf /usr/local/lib/python2.7/dist-packages/requests*
+  when: docker_pip_result_handler | failed
+  listen: removed-docker-py
+
+- name: install docker with pip
+  become: true
+  pip:
+    name: docker
+  when: docker_pip_result_handler | failed
+  listen: removed-docker-py

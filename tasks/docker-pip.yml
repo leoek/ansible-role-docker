@@ -1,0 +1,58 @@
+---
+# for some reason docker_container and docker_service only work if docker and docker-compose
+#  were installed through pip
+- name: install pip
+  become: true
+  apt: name={{item}} state=present
+  with_items:
+    - python-pip
+    - python-dev
+
+#- import_tasks: docker-pip-dependencies.yml
+
+- name: remove docker-py
+  become: true
+  pip:
+    name: docker-py
+    state: absent
+  notify: removed-docker-py
+
+- name: install docker with pip
+  become: true
+  pip:
+    name: docker
+  register: docker_pip_result
+  ignore_errors: True
+
+#this resolves https://stackoverflow.com/questions/27341064/how-do-i-fix-importerror-cannot-import-name-incompleteready
+#(try to install with pip after that again)
+- name: clear python 2.7 requests
+  become: true
+  command: rm -rf /usr/local/lib/python2.7/dist-packages/requests*
+  when: docker_pip_result | failed
+
+- name: install docker with pip
+  become: true
+  pip:
+    name: docker
+  when: docker_pip_result | failed
+
+- name: install docker-compose with pip
+  become: true
+  pip:
+    name: docker-compose
+  register: docker_compose_pip_result
+  ignore_errors: True
+
+#this resolves https://stackoverflow.com/questions/27341064/how-do-i-fix-importerror-cannot-import-name-incompleteready
+#(try to install with pip after that again)
+- name: clear python 2.7 requests
+  become: true
+  command: rm -rf /usr/local/lib/python2.7/dist-packages/requests*
+  when: docker_compose_pip_result | failed
+
+- name: try to install docker-compose with pip again
+  become: true
+  pip:
+    name: docker-compose
+  when: docker_compose_pip_result | failed

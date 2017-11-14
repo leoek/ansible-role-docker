@@ -1,0 +1,6 @@
+---
+
+- import_tasks: docker-ce.yml
+- import_tasks: docker-user.yml
+- import_tasks: docker-compose.yml
+- import_tasks: docker-pip.yml

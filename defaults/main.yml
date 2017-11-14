@@ -1,0 +1,6 @@
+---
+# defaults file for role
+
+docker_gpg_server: hkp://p80.pool.sks-keyservers.net:80
+docker_gpg_key: 58118E89F3A912897C070ADBF76221572C52609D
+docker_compose_version: 1.16.1

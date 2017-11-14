@@ -1,0 +1,21 @@
+---
+#tasks file for role
+
+- name: Get System
+  become: true
+  command: uname -s
+  register: command_system
+  changed_when: command_system.stdout != 'Linux'
+
+- name: Get Environment
+  become: true
+  command: uname -m
+  register: command_env
+  changed_when: command_env.stdout != 'x86_64'
+
+- name: Download docker compose executable
+  become: true
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ command_system.stdout }}-{{ command_env.stdout }}
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
