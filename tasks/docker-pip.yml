@@ -8,7 +8,35 @@
     - python-pip
     - python-dev
 
-#- import_tasks: docker-pip-dependencies.yml
+- name: remove docker-py
+  become: true
+  pip:
+    name: docker-py
+    state: absent
+  register: pip_result_handler #if this fails there was an error with pip
+  ignore_errors: True
+  notify: removed-docker-py
+
+  #the following is just error handling becuase there are some messed pip version in the repos..
+- name: remove pip
+  become: True
+  apt:
+    name: python-pip
+    state: absent
+    purge: yes
+  when: pip_result_handler | failed
+
+- name: install pip through get-pip
+  become: true
+  command: curl https://bootstrap.pypa.io/get-pip.py | sudo python
+  when: pip_result_handler | failed
+
+- name: install pip through apt
+  become: true
+  apt:
+    name: python-pip
+    state: present
+  when: pip_result_handler | failed
 
 - name: remove docker-py
   become: true
