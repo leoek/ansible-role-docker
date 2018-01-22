@@ -11,17 +11,26 @@
     - gnupg2
     - software-properties-common
 
-- name: add dockers official gpg key
-  become: true
-  apt_key:
-    keyserver: "{{ docker_gpg_server }}"
-    id: "{{ docker_gpg_key }}"
-
 - name: Get release
   become: true
   command: lsb_release -cs
   register: command_release
   changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie')
+
+- name: add dockers official gpg key
+  become: true
+  apt_key:
+    keyserver: "{{ docker_gpg_server }}"
+    id: "{{ docker_gpg_key }}"
+  register: add_repository_key
+  ignore_errors: true
+
+- name:  add dockers official gpg key second try
+  apt_key:
+    id: 0EBFCD88
+    url: https://download.docker.com/linux/{{ command_release.stdout }}/gpg
+    state: present
+  when: add_repository_key|failed
 
 - name: add debian repository
   become: true
