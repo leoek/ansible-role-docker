@@ -25,19 +25,46 @@
   register: add_repository_key
   ignore_errors: true
 
-- name:  add dockers official gpg key second try
+- name: add dockers official gpg key second try
   apt_key:
     id: 0EBFCD88
     url: https://download.docker.com/linux/{{ command_release.stdout }}/gpg
     state: present
   when: add_repository_key|failed
 
-- name: add debian repository
+- name: debian | add repository
   become: true
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ command_release.stdout }} stable
     state: present
     filename: 'docker'
+  when: |
+    ((base_system is defined) and (base_system.name == 'debian')) or
+    (command_release.stdout == 'stretch') or
+    (command_release.stdout == 'jessie')
+
+- name: ubuntu | add repository key
+  become: true
+  apt_key:
+    keyserver: "{{ docker_ubuntu_gpg_server }}"
+    id: "{{ docker_ubuntu_gpg_key }}"
+  when: |
+    ((base_system is defined) and (base_system.name == 'ubuntu')) or
+    (command_release.stdout == 'xenial') or
+    (command_release.stdout == 'trusty')
+
+
+- name: ubuntu | add repository
+  become: true
+  apt_repository:
+    #repo: "deb https://apt.dockerproject.org/repo ubuntu-{{ base_system.version_name }} main"
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ base_system.version_name }} stable
+    state: present
+    filename: 'docker'
+  when: | 
+    ((base_system is defined) and (base_system.name == 'ubuntu')) or
+    (command_release.stdout == 'xenial') or
+    (command_release.stdout == 'trusty')
 
 - name: install docker-ce
   become: true
