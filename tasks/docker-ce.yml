@@ -54,7 +54,7 @@
     (command_release.stdout == 'trusty')
 
 
-- name: ubuntu | add repository
+- name: ubuntu | add repository with version_name from host vars
   become: true
   apt_repository:
     #repo: "deb https://apt.dockerproject.org/repo ubuntu-{{ base_system.version_name }} main"
@@ -62,7 +62,17 @@
     state: present
     filename: 'docker'
   when: | 
-    ((base_system is defined) and (base_system.name == 'ubuntu')) or
+    ((base_system is defined) and
+    (base_system.name == 'ubuntu') and
+    (base_system.version_name is defined))
+
+- name: ubuntu | add repository with name read from system
+  become: true
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ command_release.stdout }} stable
+    state: present
+    filename: 'docker'
+  when: | 
     (command_release.stdout == 'xenial') or
     (command_release.stdout == 'trusty')
 
