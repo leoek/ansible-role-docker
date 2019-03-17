@@ -3,7 +3,9 @@
 
 - name: install stuff which allows apt to use repositorys over https
   become: true
-  apt: name={{item}} state=present
+  apt:
+    name: "{{item}}"
+    state: present
   with_items:
     - apt-transport-https
     - ca-certificates
@@ -15,7 +17,7 @@
   become: true
   command: lsb_release -cs
   register: command_release
-  changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie')
+  changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie') and (command_release.stdout != 'xenial') and (command_release.stdout != 'trusty')
 
 - name: add dockers official gpg key
   become: true
