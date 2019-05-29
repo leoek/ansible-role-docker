@@ -17,7 +17,7 @@
   become: true
   command: lsb_release -cs
   register: command_release
-  changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie') and (command_release.stdout != 'xenial') and (command_release.stdout != 'trusty')
+  changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie') and (command_release.stdout != 'xenial') and (command_release.stdout != 'trusty') and (command_release.stdout != 'disco')
 
 - name: add dockers official gpg key
   become: true
@@ -32,7 +32,7 @@
     id: 0EBFCD88
     url: https://download.docker.com/linux/{{ command_release.stdout }}/gpg
     state: present
-  when: add_repository_key|failed
+  when: add_repository_key is failed
 
 - name: debian | add repository
   become: true
@@ -53,8 +53,8 @@
   when: |
     ((base_system is defined) and (base_system.name == 'ubuntu')) or
     (command_release.stdout == 'xenial') or
-    (command_release.stdout == 'trusty')
-
+    (command_release.stdout == 'trusty') or
+    (command_release.stdout == 'disco')
 
 - name: ubuntu | add repository with version_name from host vars
   become: true
@@ -76,7 +76,23 @@
     filename: 'docker'
   when: | 
     (command_release.stdout == 'xenial') or
-    (command_release.stdout == 'trusty')
+    (command_release.stdout == 'trusty') or
+    (command_release.stdout == 'disco')
+
+- name: ubuntu disco | install docker.io
+  become: true
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+    force: yes
+  register: install_docker_io_result
+  when: |
+    (command_release.stdout == 'disco') or
+    ((base_system is defined) and
+    (base_system.name == 'ubuntu') and
+    (base_system.version_name is defined) and
+    (base_system.version_name == 'disco'))
 
 - name: install docker-ce
   become: true
@@ -85,6 +101,7 @@
     state: present
     update_cache: yes
     force: yes
+  when: install_docker_io_result is skipped
 
 - name: "enable and start docker service"
   become: true
