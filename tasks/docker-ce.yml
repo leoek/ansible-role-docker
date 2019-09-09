@@ -17,7 +17,7 @@
   become: true
   command: lsb_release -cs
   register: command_release
-  changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie') and (command_release.stdout != 'xenial') and (command_release.stdout != 'trusty') and (command_release.stdout != 'disco')
+  changed_when: (command_release.stdout != 'stretch') and (command_release.stdout != 'jessie') and (command_release.stdout != 'xenial') and (command_release.stdout != 'trusty') and (command_release.stdout != 'disco') and (command_release.stdout != 'buster')
 
 - name: add dockers official gpg key
   become: true
@@ -43,7 +43,8 @@
   when: |
     ((base_system is defined) and (base_system.name == 'debian')) or
     (command_release.stdout == 'stretch') or
-    (command_release.stdout == 'jessie')
+    (command_release.stdout == 'jessie') or
+    (command_release.stdout == 'buster')
 
 - name: ubuntu | add repository key
   become: true

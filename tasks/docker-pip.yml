@@ -7,6 +7,12 @@
   with_items:
     - python-pip
     - python-dev
+    - python-setuptools
+
+- name: Install Virtualenv
+  become: true
+  pip:
+    name: "virtualenv"
 
 - name: remove docker-py
   become: true
@@ -49,6 +55,7 @@
   become: true
   pip:
     name: docker
+    virtualenv: "{{ docker_pip_virtualenv }}"
   register: docker_pip_result
   ignore_errors: True
 
@@ -63,7 +70,16 @@
   become: true
   pip:
     name: docker
+    virtualenv: "{{ docker_pip_virtualenv }}"
   when: docker_pip_result | failed
+
+- name: Symlink Python binary to /usr/local/bin/python-docker
+  become: true
+  file:
+    path: "/usr/local/bin/python-docker"
+    src: "{{ docker_pip_virtualenv }}/bin/python"
+    force: true
+    state: "link"
 
 - name: install docker-compose with pip
   become: true
@@ -84,3 +100,19 @@
   pip:
     name: docker-compose
   when: docker_compose_pip_result | failed
+
+- name: Symlink docker python package binary to /usr/local/bin
+  become: true
+  file:
+    path: "/usr/local/bin/docker"
+    src: "{{ docker_pip_virtualenv }}/bin/docker"
+    force: true
+    state: "link"
+
+- name: Symlink docker python package binary to /usr/local/bin
+  become: true
+  file:
+    path: "/usr/local/bin/docker-compose"
+    src: "{{ docker_pip_virtualenv }}/bin/docker-compose"
+    force: true
+    state: "link"
