@@ -30,19 +30,30 @@
     name: python-pip
     state: absent
     purge: yes
-  when: pip_result_handler | failed
+  when: pip_result_handler is failed
 
 - name: install pip through get-pip
   become: true
   command: curl https://bootstrap.pypa.io/get-pip.py | sudo python
-  when: pip_result_handler | failed
+  when: pip_result_handler is failed
 
 - name: install pip through apt
   become: true
   apt:
     name: python-pip
     state: present
-  when: pip_result_handler | failed
+  when: pip_result_handler is failed
+
+- name: install ssl_match_hostname with pip
+  become: true
+  pip:
+    name: backports.ssl-match-hostname>=3.7.0
+
+- name: install ssl_match_hostname with pip
+  become: true
+  pip:
+    name: backports.ssl-match-hostname>=3.7.0
+    virtualenv: "{{ docker_pip_virtualenv }}"
 
 - name: remove docker-py
   become: true
@@ -64,14 +75,14 @@
 - name: clear python 2.7 requests
   become: true
   command: rm -rf /usr/local/lib/python2.7/dist-packages/requests*
-  when: docker_pip_result | failed
+  when: docker_pip_result is failed
 
 - name: install docker with pip
   become: true
   pip:
     name: docker
     virtualenv: "{{ docker_pip_virtualenv }}"
-  when: docker_pip_result | failed
+  when: docker_pip_result is failed
 
 - name: Symlink Python binary to /usr/local/bin/python-docker
   become: true
@@ -81,6 +92,7 @@
     force: true
     state: "link"
 
+# docker-compose and docker python must be within different virtual python envs!
 - name: install docker-compose with pip
   become: true
   pip:
@@ -93,26 +105,10 @@
 - name: clear python 2.7 requests
   become: true
   command: rm -rf /usr/local/lib/python2.7/dist-packages/requests*
-  when: docker_compose_pip_result | failed
+  when: docker_compose_pip_result is failed
 
 - name: try to install docker-compose with pip again
   become: true
   pip:
     name: docker-compose
-  when: docker_compose_pip_result | failed
-
-- name: Symlink docker python package binary to /usr/local/bin
-  become: true
-  file:
-    path: "/usr/local/bin/docker"
-    src: "{{ docker_pip_virtualenv }}/bin/docker"
-    force: true
-    state: "link"
-
-- name: Symlink docker python package binary to /usr/local/bin
-  become: true
-  file:
-    path: "/usr/local/bin/docker-compose"
-    src: "{{ docker_pip_virtualenv }}/bin/docker-compose"
-    force: true
-    state: "link"
+  when: docker_compose_pip_result is failed

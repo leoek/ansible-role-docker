@@ -19,3 +19,24 @@
     url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ command_system.stdout }}-{{ command_env.stdout }}
     dest: /usr/local/bin/docker-compose
     mode: 0755
+
+- name: install backports.ssl-match-hostname to be able to call docker-compose
+  become: true
+  apt:
+    name: python-backports.ssl-match-hostname
+    state: present
+
+- name: Get current docker-compose version
+  become: true
+  command: docker-compose --version
+  register: command_docker_compose_version
+  changed_when: not command_docker_compose_version.stdout is match('docker-compose version .*')
+
+- name: Force download of docker compose executable to get the defined version
+  become: true
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ command_system.stdout }}-{{ command_env.stdout }}
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
+    force: yes
+  when: not command_docker_compose_version.stdout is match('docker-compose version ' + docker_compose_version + '.*')

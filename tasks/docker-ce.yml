@@ -86,7 +86,6 @@
     name: docker.io
     state: present
     update_cache: yes
-    force: yes
   register: install_docker_io_result
   when: |
     (command_release.stdout == 'disco') or
@@ -101,7 +100,6 @@
     name: docker-ce
     state: present
     update_cache: yes
-    force: yes
   when: install_docker_io_result is skipped
 
 - name: "enable and start docker service"
