@@ -3,4 +3,8 @@
 - import_tasks: docker-ce.yml
 - import_tasks: docker-user.yml
 - import_tasks: docker-compose.yml
-- import_tasks: docker-pip.yml
+- include_tasks: docker-pip.yml
+  when: (ansible_python_interpreter is undefined) or not (ansible_python_interpreter is search("python3"))
+- include_tasks: docker-pip3.yml
+  when: (ansible_python_interpreter is defined) and (ansible_python_interpreter is search("python3"))
+

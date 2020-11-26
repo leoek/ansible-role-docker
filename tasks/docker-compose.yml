@@ -25,6 +25,7 @@
   apt:
     name: python-backports.ssl-match-hostname
     state: present
+  when: (ansible_python_interpreter is undefined) or not (ansible_python_interpreter is search("python3"))
 
 - name: Get current docker-compose version
   become: true
