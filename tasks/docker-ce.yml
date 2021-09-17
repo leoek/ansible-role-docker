@@ -27,12 +27,23 @@
   register: add_repository_key
   ignore_errors: true
 
-- name: add dockers official gpg key second try
+- name: by base_system.name | add dockers official gpg key second try
+  become: true
   apt_key:
     id: 0EBFCD88
-    url: https://download.docker.com/linux/{{ command_release.stdout }}/gpg
+    url: https://download.docker.com/linux/{{ base_system.name }}/gpg
     state: present
-  when: add_repository_key is failed
+  when: |
+    add_repository_key is failed and base_system is defined
+
+- name: by ansible_distribution | add dockers official gpg key second try
+  become: true
+  apt_key:
+    id: 0EBFCD88
+    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+    state: present
+  when: |
+    add_repository_key is failed and base_system is not defined
 
 # For unknown reasons this task is not python3 compatible
 - name: debian | add repository
@@ -56,10 +67,7 @@
     id: "{{ docker_ubuntu_gpg_key }}"
   when: |
     ((base_system is defined) and (base_system.name == 'ubuntu')) or
-    (command_release.stdout == 'xenial') or
-    (command_release.stdout == 'trusty') or
-    (command_release.stdout == 'disco') or
-    (command_release.stdout == 'focal')
+    (ansible_distribution | lower == 'ubuntu')
 
 - name: ubuntu | add repository with version_name from host vars
   become: true
@@ -83,7 +91,8 @@
     (command_release.stdout == 'xenial') or
     (command_release.stdout == 'trusty') or
     (command_release.stdout == 'disco') or
-    (command_release.stdout == 'focal')
+    (command_release.stdout == 'focal') or
+    (command_release.stdout == 'hirsute')
 
 - name: install docker-ce
   become: true
